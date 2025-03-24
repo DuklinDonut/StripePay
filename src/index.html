@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Paiement Stripe</title>
+</head>
+<body>
+  <h1>Paiement avec Stripe</h1>
+
+  <input type="number" id="priceInput" placeholder="Entrez le prix en €" />
+  <button id="payBtn">Payer</button>
+
+  <script>
+    document.getElementById('payBtn').addEventListener('click', async () => {
+      const price = document.getElementById('priceInput').value;
+
+      if (!price || isNaN(price)) {
+        alert("Prix invalide");
+        return;
+      }
+
+      const response = await fetch('http://localhost:3000/create-checkout-session', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ price: parseFloat(price) })
+      });
+
+      const data = await response.json();
+
+      if (data.url) {
+        window.location.href = data.url; // Redirection vers Stripe Checkout
+      } else {
+        alert("Erreur lors de la création de la session Stripe.");
+      }
+    });
+  </script>
+</body>
+</html>
