@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import Stripe from 'stripe';
+import pool from './db';
 
 dotenv.config();
 
@@ -13,7 +14,6 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string, {
   apiVersion: '2022-11-15',
 });
 
-// Fonction séparée pour créer la session Stripe
 function createCheckoutSession(req: Request, res: Response): void {
   const { price } = req.body;
 
@@ -36,12 +36,23 @@ function createCheckoutSession(req: Request, res: Response): void {
         },
       ],
       mode: 'payment',
-      //à faire au niveau du front
       success_url: 'https://example.com/success',
       cancel_url: 'https://example.com/cancel',
     })
     .then((session) => {
-      res.json({ url: session.url });
+      // Enregistrer le paiement dans la base de données
+      const queryText = 'INSERT INTO payments (amount, session_id) VALUES ($1, $2) RETURNING id';
+      const values = [price, session.id];
+      pool
+        .query(queryText, values)
+        .then((result) => {
+          console.log('Paiement enregistré, ID:', result.rows[0].id);
+          res.json({ url: session.url });
+        })
+        .catch((dbError) => {
+          console.error('Erreur enregistrement DB :', dbError);
+          res.status(500).json({ error: 'Erreur de création de session' });
+        });
     })
     .catch((error) => {
       console.error('Erreur Stripe :', error);
@@ -49,7 +60,6 @@ function createCheckoutSession(req: Request, res: Response): void {
     });
 }
 
-// Et ici, on appelle juste la fonction (aucun async dans app.post)
 app.post('/create-checkout-session', createCheckoutSession);
 
 const PORT = 3000;
