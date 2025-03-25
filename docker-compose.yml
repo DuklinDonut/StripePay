@@ -1,0 +1,49 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    ##environment:
+    ##  - PORT=3000
+    ##  - STRIPE_SECRET_KEY=sk_test_51JAacmDXAbGLah4jz81YdBO5lrj4Y4XSrdoL1euEnCrs1zQ6I05wBdbYTgkOEyuH2ZHJ46lPLdY7qtBcD6i45p500ZuDIkxH9
+    ##  - DATABASE_URL=postgresql://stripepaydb_user:J59PsRzcp7VhiOUo9vHKotw4hTtYDvm9@postgres:5432/stripepaydb
+    ##  - RABBITMQ_URL=amqp://rabbitmq:5672
+    ##  - QUEUE_NAME_PRICE=priceQueue
+      
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    restart: always
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres:
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_USER: stripepaydb_user
+      POSTGRES_PASSWORD: J59PsRzcp7VhiOUo9vHKotw4hTtYDvm9
+      POSTGRES_DB: stripepaydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stripepaydb_user"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
