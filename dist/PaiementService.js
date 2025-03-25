@@ -22,8 +22,9 @@ const stripe = new stripe_1.default(process.env.STRIPE_SECRET_KEY, {
 });
 function processPayment(message) {
     return __awaiter(this, void 0, void 0, function* () {
-        const { ticketId, unitPrice, quantity, totalAmount } = message;
+        const { ticketId, unitPrice } = message; // On ne prend plus la quantité
         try {
+            // Création de la session de paiement avec Stripe sans quantité
             const session = yield stripe.checkout.sessions.create({
                 payment_method_types: ['card'],
                 line_items: [
@@ -31,23 +32,23 @@ function processPayment(message) {
                         price_data: {
                             currency: 'eur',
                             product_data: { name: `Billet ID: ${ticketId}` },
-                            unit_amount: Math.round(unitPrice * 100),
+                            unit_amount: Math.round(unitPrice * 100), // Utilisation du prix unitaire
                         },
-                        quantity: quantity,
+                        // Pas de `quantity` ici, car tu veux totalement l'enlever
                     },
                 ],
                 mode: 'payment',
                 success_url: 'https://example.com/success',
                 cancel_url: 'https://example.com/cancel',
             });
-            const queryText = `INSERT INTO payments (ticket_id, unit_price, quantity, total_amount, session_id) 
-                       VALUES ($1, $2, $3, $4, $5) RETURNING id`;
-            const values = [ticketId, unitPrice, quantity, totalAmount, session.id];
+            // Insertion des données dans la base de données sans `quantity`
+            const queryText = `INSERT INTO payments (ticket_id, unit_price, session_id) VALUES ($1, $2, $3) RETURNING id`;
+            const values = [ticketId, unitPrice, session.id];
             const result = yield db_1.default.query(queryText, values);
             console.log(`Paiement enregistré en BDD, ID: ${result.rows[0].id}`);
         }
         catch (error) {
-            console.error(" Erreur de paiement:", error);
+            console.error("Erreur de paiement:", error);
         }
     });
 }
@@ -55,12 +56,12 @@ function consumeQueue() {
     return __awaiter(this, void 0, void 0, function* () {
         const connection = yield amqplib_1.default.connect(process.env.RABBITMQ_URL || "amqp://localhost");
         const channel = yield connection.createChannel();
-        yield channel.assertQueue("paiement_queue", { durable: true });
-        console.log("🎧 En attente de messages dans 'paiement_queue'...");
-        channel.consume("paiement_queue", (msg) => __awaiter(this, void 0, void 0, function* () {
+        yield channel.assertQueue("process_payment", { durable: true });
+        console.log("🎧 En attente de messages dans 'process_payment'...");
+        channel.consume("process_payment", (msg) => __awaiter(this, void 0, void 0, function* () {
             if (msg !== null) {
                 const message = JSON.parse(msg.content.toString());
-                console.log(" Message reçu:", message);
+                console.log("Message reçu:", message);
                 yield processPayment(message);
                 channel.ack(msg);
             }

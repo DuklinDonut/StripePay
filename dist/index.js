@@ -37,13 +37,12 @@ function sendToQueue(queue, message) {
 }
 app.post('/create-checkout-session', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const { ticketId, unitPrice, quantity } = req.body;
-        if (!ticketId || isNaN(unitPrice) || isNaN(quantity) || quantity <= 0) {
+        const { ticketId, unitPrice } = req.body;
+        if (!ticketId || isNaN(unitPrice)) {
             res.status(400).json({ error: 'Données invalides' });
             return;
         }
-        const totalAmount = unitPrice * quantity;
-        const message = { ticketId, unitPrice, quantity, totalAmount };
+        const message = { ticketId, unitPrice };
         yield sendToQueue("paiement_queue", message);
         res.json({ message: "Paiement en attente de traitement" });
     }
