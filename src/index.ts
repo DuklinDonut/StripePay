@@ -48,7 +48,7 @@ async function startPriceConsumer(): Promise<void> {
             return;
           }
 
-          const session = await stripe.checkout.sessions.create({
+          /*const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
             line_items: [
               {
@@ -70,7 +70,15 @@ async function startPriceConsumer(): Promise<void> {
           await pool.query(query, [ticketId, price, session.id]);
 
           // 🔥 Affiche l'URL dans la console
-          console.log(`🎉 URL Stripe générée: ${session.url}`);
+          console.log(`🎉 URL Stripe générée: ${session.url}`);*/
+          channel.sendToQueue(
+            msg.properties.replyTo,
+            Buffer.from(JSON.stringify(true)),
+            {
+              correlationId: msg.properties.correlationId,
+            }
+          );
+          console.log('paiement reussi')
 
         } catch (error) {
           console.error("Erreur traitement message :", error);

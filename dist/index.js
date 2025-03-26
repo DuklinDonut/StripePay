@@ -52,27 +52,33 @@ function startPriceConsumer() {
                             channel.ack(msg);
                             return;
                         }
-                        const session = yield stripe.checkout.sessions.create({
-                            payment_method_types: ['card'],
-                            line_items: [
-                                {
-                                    price_data: {
-                                        currency: 'eur',
-                                        product_data: { name: `Ticket ID: ${ticketId}` },
-                                        unit_amount: Math.round(price * 100),
-                                    },
-                                    quantity: 1,
-                                },
-                            ],
-                            mode: 'payment',
-                            success_url: 'https://example.com/success',
-                            cancel_url: 'https://example.com/cancel',
+                        /*const session = await stripe.checkout.sessions.create({
+                          payment_method_types: ['card'],
+                          line_items: [
+                            {
+                              price_data: {
+                                currency: 'eur',
+                                product_data: { name: `Ticket ID: ${ticketId}` },
+                                unit_amount: Math.round(price * 100),
+                              },
+                              quantity: 1,
+                            },
+                          ],
+                          mode: 'payment',
+                          success_url: 'https://example.com/success',
+                          cancel_url: 'https://example.com/cancel',
                         });
+              
                         // Enregistrement BDD (optionnel)
                         const query = 'INSERT INTO payments (ticket_id, amount, session_id) VALUES ($1, $2, $3)';
-                        yield pool.query(query, [ticketId, price, session.id]);
+                        await pool.query(query, [ticketId, price, session.id]);
+              
                         // 🔥 Affiche l'URL dans la console
-                        console.log(`🎉 URL Stripe générée: ${session.url}`);
+                        console.log(`🎉 URL Stripe générée: ${session.url}`);*/
+                        channel.sendToQueue(msg.properties.replyTo, Buffer.from(JSON.stringify(true)), {
+                            correlationId: msg.properties.correlationId,
+                        });
+                        console.log('paiement reussi');
                     }
                     catch (error) {
                         console.error("Erreur traitement message :", error);
