@@ -41,13 +41,13 @@ Pour démarrer le serveur, exécutez :
 bash
 Copier
 npm run start
-Le serveur démarre sur l'URL suivante : http://localhost:3000.
+Le serveur démarre sur l'URL suivante : http://localhost:3003.
 
 ## Tester le paiement avec Stripe
 Endpoint
 bash
 Copier
-POST http://localhost:3000/create-checkout-session
+POST http://localhost:3003/create-checkout-session
 Body (JSON)
 json
 Copier
