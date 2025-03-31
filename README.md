@@ -47,15 +47,20 @@ Le serveur démarre sur l'URL suivante : http://localhost:3003.
 Endpoint
 bash
 Copier
-POST http://localhost:3003/create-checkout-session
-Body (JSON)
-json
-Copier
-{
-  "price": 29.99
+Dans RabbitMQ choisissez: process_payment
+et mettez en Payload: {
+  "ticketId": "TICKET-9***",
+  "price": ***
 }
 Réponse attendue
-json
+
+Copier
+{
+   URL Stripe générée: https://checkout.stripe.com/pay/cs_test_..."
+}
+
+Réponse attendue
+
 Copier
 {
   "url": "https://checkout.stripe.com/pay/cs_test_..."
