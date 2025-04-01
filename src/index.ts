@@ -122,7 +122,7 @@ app.post('/create-checkout-session', (req: Request, res: Response): void => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3003;
 app.listen(PORT, () => {
   console.log(`Serveur lancé sur http://localhost:${PORT}`);
   startPriceConsumer();

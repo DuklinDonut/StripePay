@@ -119,7 +119,7 @@ app.post('/create-checkout-session', (req, res) => {
         res.status(500).json({ error: 'Erreur de création de session' });
     });
 });
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3003;
 app.listen(PORT, () => {
     console.log(`Serveur lancé sur http://localhost:${PORT}`);
     startPriceConsumer();
